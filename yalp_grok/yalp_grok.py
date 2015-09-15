@@ -19,12 +19,23 @@ class PatternNotFound(GrokError):
 
 
 def grok_match(text, pattern, custom_patterns = {}, custom_patterns_dir = None):
-    """If text is matched with pattern, return variable names specified(%{pattern:variable name}) 
+    """If text is matched with pattern, return variable names specified(%{pattern:variable name})
     in pattern and their corresponding values.If not matched, return None.
     custom patterns can be passed in by custom_patterns(pattern name, pattern regular expression pair)or custom_patterns_dir.
     """
-    global loaded_pre_patterns
+    return grok_search(text, compile_pattern(pattern,
+                                             custom_patterns,
+                                             custom_patterns_dir))
+
+
+def compile_pattern(pattern, custom_patterns = {}, custom_patterns_dir = None):
+    """Compile pattern before use, for better performance when matching text to patterns.
+    Returns a regex string that can be passed as a pattern to grok_search() for matching.
+    Custom patterns can be passed in by custom_patterns(pattern name, pattern regular expression pair)
+    or custom_patterns_dir, and will then be used in addition to the built-in ones.
+    """
     global predefined_patterns
+    global loaded_pre_patterns
     if loaded_pre_patterns is False:
         predefined_patterns = _reload_patterns(DEFAULT_PATTERNS_DIRS)
         loaded_pre_patterns = True
@@ -52,46 +63,6 @@ def grok_match(text, pattern, custom_patterns = {}, custom_patterns_dir = None):
             lambda m: "(" + all_patterns[m.group(1)].regex_str + ")", py_regex_pattern)
 
         if re.search('%{\w+(:\w+)?}', py_regex_pattern) is None:
-            break
-
-    match_obj = re.search(py_regex_pattern, text)
-    return match_obj.groupdict() if match_obj is not None else None
-
-def compile_pattern(pattern, custom_patterns = {}, custom_patterns_dir = None):
-    """Compile pattern before use, for better performance when matching text to patterns.
-    Returns a regex string that can be passed as a pattern to grok_search() for matching.
-    Custom patterns can be passed in by custom_patterns(pattern name, pattern regular expression pair) 
-    or custom_patterns_dir, and will then be used in addition to the built-in ones.
-    """
-    if loaded_pre_patterns is False:
-       global predefined_patterns
-       predefined_patterns = _reload_patterns(DEFAULT_PATTERNS_DIRS)
-       global loaded_pre_patterns
-       loaded_pre_patterns = True
-
-    all_patterns = copy.deepcopy(predefined_patterns)
-
-    custom_pats = {}
-    if custom_patterns_dir is not None:
-        custom_pats = _reload_patterns([custom_patterns_dir])
-
-    for pat_name, regex_str in custom_patterns.items():
-        custom_pats[pat_name] = Pattern(pat_name, regex_str)
-
-    if len(custom_pats) > 0:
-        all_patterns.update(custom_pats)
-
-    #attention: this may cause performance problems
-    py_regex_pattern = pattern
-    while True:
-        #replace %{pattern_name:custom_name} with regex and regex group name
-        py_regex_pattern = re.sub(r'%{(\w+):(\w+)}',
-            lambda m: "(?P<" + m.group(2) + ">" + all_patterns[m.group(1)].regex_str + ")", py_regex_pattern)
-        #replace %{pattern_name} with regex
-        py_regex_pattern = re.sub(r'%{(\w+)}',
-            lambda m: "(" + all_patterns[m.group(1)].regex_str + ")", py_regex_pattern)
-
-        if re.search('%{\w+}', py_regex_pattern) is None:
             break
 
     return py_regex_pattern
