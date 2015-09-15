@@ -136,6 +136,27 @@ class TestMutiplePatterns(unittest.TestCase):
         self.assertEqual(match['referrer'], '"-"')
         self.assertEqual(match['agent'], '"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36"')
 
+    def test_compound_matches(self):
+        text = (
+            '127.0.0.1 - - [15/Sep/2015:13:41:35 -0400] "GET /index.html '
+            'HTTP/1.1" 502 352 "-" '
+            '"Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0"'
+        )
+        pat = '%{COMBINEDAPACHELOG}'
+        match = grok_match(text, pat)
+        self.assertIsNotNone(match)
+        self.assertEqual(match['clientip'], '127.0.0.1')
+        self.assertEqual(match['ident'], '-')
+        self.assertEqual(match['auth'], '-')
+        self.assertEqual(match['timestamp'], '15/Sep/2015:13:41:35 -0400')
+        self.assertEqual(match['verb'], 'GET')
+        self.assertEqual(match['request'], '/index.html')
+        self.assertEqual(match['httpversion'], '1.1')
+        self.assertEqual(match['response'], '502')
+        self.assertEqual(match['bytes'], '352')
+        self.assertEqual(match['referrer'], '"-"')
+        self.assertEqual(match['agent'], '"Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0"')
+
 
 class TestCustomPatterns(unittest.TestCase):
     '''
