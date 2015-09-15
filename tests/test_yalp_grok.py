@@ -1,4 +1,4 @@
-from pygrok import grok_match
+from yalp_grok import grok_match
 
 def test_one_pat():
     text = '1024'
