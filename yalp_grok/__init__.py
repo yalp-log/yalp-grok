@@ -3,4 +3,4 @@
 yalp_grok
 =========
 '''
-from .yalp_grok import *
+from .yalp_grok import compile_pattern, grok_search, grok_match  # noqa

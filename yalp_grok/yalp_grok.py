@@ -1,119 +1,120 @@
-try:
-    import regex as re
-except ImportError as e:
-    # If you import re, grok_match can't handle regular expression containing atomic group(?>)
-    import re
+# vim: set et ts=4 sw=4 fileencoding=utf-8:
+'''
+yalp_grok.yalp_grok
+===================
+'''
 import os
 import copy
-
-DEFAULT_PATTERNS_DIRS = [os.path.dirname(os.path.abspath(__file__)) + '/patterns']
-
-predefined_patterns = {}
-loaded_pre_patterns = False
+import regex as re
+from collections import namedtuple
 
 
-class GrokError(Exception):
-    pass
-class PatternNotFound(GrokError):
-    pass
+Pattern = namedtuple('Pattern', 'name regex_str')
+
+DEFAULT_PATTERNS_DIRS = [
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'patterns'),
+]
 
 
-def grok_match(text, pattern, custom_patterns = {}, custom_patterns_dir = None):
-    """If text is matched with pattern, return variable names specified(%{pattern:variable name})
-    in pattern and their corresponding values.If not matched, return None.
-    custom patterns can be passed in by custom_patterns(pattern name, pattern regular expression pair)or custom_patterns_dir.
-    """
+def grok_match(text, pattern, custom_patterns=None, custom_patterns_dir=None):
+    '''
+    Search for pattern in text.
+
+    If text is matched with pattern, return variable names specified
+    (%{pattern:variable name}) in pattern and their corresponding
+    values. If not matched, return None. custom patterns can be passed
+    in by custom_patterns(pattern name, pattern regular expression pair)
+    or custom_patterns_dir.
+    '''
     return grok_search(text, compile_pattern(pattern,
                                              custom_patterns,
                                              custom_patterns_dir))
 
 
-def compile_pattern(pattern, custom_patterns = {}, custom_patterns_dir = None):
-    """Compile pattern before use, for better performance when matching text to patterns.
-    Returns a regex string that can be passed as a pattern to grok_search() for matching.
-    Custom patterns can be passed in by custom_patterns(pattern name, pattern regular expression pair)
-    or custom_patterns_dir, and will then be used in addition to the built-in ones.
-    """
-    global predefined_patterns
-    global loaded_pre_patterns
-    if loaded_pre_patterns is False:
-        predefined_patterns = _reload_patterns(DEFAULT_PATTERNS_DIRS)
-        loaded_pre_patterns = True
+def compile_pattern(pattern, custom_patterns=None, custom_patterns_dir=None):
+    '''
+    Compile pattern before use for better performance when matching.
 
-    all_patterns = copy.deepcopy(predefined_patterns)
+    Returns a regex string that can be passed as a pattern to
+    grok_search() for matching. Custom patterns can be passed in by
+    custom_patterns(pattern name, pattern regular expression pair) or
+    custom_patterns_dir, and will then be used in addition to the
+    built-in ones.
+    '''
+    all_patterns = copy.deepcopy(PREDEFINED_PATTERNS)
 
     custom_pats = {}
     if custom_patterns_dir is not None:
         custom_pats = _reload_patterns([custom_patterns_dir])
 
-    for pat_name, regex_str in custom_patterns.items():
-        custom_pats[pat_name] = Pattern(pat_name, regex_str)
+    if custom_patterns:
+        for pat_name, regex_str in custom_patterns.items():
+            custom_pats[pat_name] = Pattern(pat_name, regex_str)
 
-    if len(custom_pats) > 0:
-        all_patterns.update(custom_pats)
+    all_patterns.update(custom_pats)
 
-    #attention: this may cause performance problems
     py_regex_pattern = pattern
     while True:
-        #replace %{pattern_name:custom_name} with regex and regex group name
-        py_regex_pattern = re.sub(r'%{(\w+):(\w+)}',
-            lambda m: "(?P<" + m.group(2) + ">" + all_patterns[m.group(1)].regex_str + ")", py_regex_pattern)
-        #replace %{pattern_name} with regex
-        py_regex_pattern = re.sub(r'%{(\w+)}',
-            lambda m: "(" + all_patterns[m.group(1)].regex_str + ")", py_regex_pattern)
-
-        if re.search('%{\w+(:\w+)?}', py_regex_pattern) is None:
+        # replace %{pattern_name:custom_name} with regex and regex group name
+        py_regex_pattern = re.sub(
+            r'%{(\w+):(\w+)}',
+            lambda m: "(?P<{}>{})".format(m.group(2),
+                                          all_patterns[m.group(1)].regex_str),
+            py_regex_pattern,
+        )
+        # replace %{pattern_name} with regex
+        py_regex_pattern = re.sub(
+            r'%{(\w+)}',
+            lambda m: "({})".format(all_patterns[m.group(1)].regex_str),
+            py_regex_pattern,
+        )
+        if re.search(r'%{\w+(:\w+)?}', py_regex_pattern) is None:
             break
 
     return py_regex_pattern
 
+
 def grok_search(text, pattern):
-    """Search for pattern in text. Return dictionary with named fields in pattern as keys, or None if no match found.
-    """
+    '''
+    Search for pattern in text.
+
+    Return dictionary with named fields in pattern as keys, or None if
+    no match found.
+    '''
     match_obj = re.search(pattern, text)
     return match_obj.groupdict() if match_obj is not None else None
 
-def _wrap_pattern_name(pat_name):
-    return '%{' + pat_name + '}'
 
 def _reload_patterns(patterns_dirs):
-    """
-    """
+    '''
+    Load patters from all files in a directory.
+    '''
     all_patterns = {}
-    for dir in patterns_dirs:
-        for f in os.listdir(dir):
-            patterns = _load_patterns_from_file(os.path.join(dir, f))
+    for dir_ in patterns_dirs:
+        for pat_file in os.listdir(dir_):
+            patterns = _load_patterns_from_file(os.path.join(dir_, pat_file))
             all_patterns.update(patterns)
 
     return all_patterns
 
 
-def _load_patterns_from_file(file):
-    """
-    """
+def _load_patterns_from_file(pat_file):
+    '''
+    Load patterns from a text file.
+    '''
     patterns = {}
-    with open(file, 'r') as f:
-        for l in f:
-            l = l.strip()
-            if l == '' or l.startswith('#'):
+    with open(pat_file, 'r') as pfh:
+        for line in pfh:
+            line = line.strip()
+            if line == '' or line.startswith('#'):
                 continue
 
-            sep = l.find(' ')
-            pat_name = l[:sep]
-            regex_str = l[sep:].strip()
+            sep = line.find(' ')
+            pat_name = line[:sep]
+            regex_str = line[sep:].strip()
             pat = Pattern(pat_name, regex_str)
-            patterns[pat.pattern_name] = pat
+            patterns[pat.name] = pat
     return patterns
 
 
-class Pattern(object):
-    """
-    """
-    def __init__(self, pattern_name, regex_str, sub_patterns = {}):
-        self.pattern_name = pattern_name
-        self.regex_str = regex_str
-        self.sub_patterns = sub_patterns # sub_pattern name list
-
-    def __str__(self):
-        return '<Pattern:%s,  %s,  %s>' % (self.pattern_name, self.regex_str, self.sub_patterns)
-
+PREDEFINED_PATTERNS = _reload_patterns(DEFAULT_PATTERNS_DIRS)
