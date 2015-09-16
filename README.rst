@@ -1,6 +1,18 @@
 YALP Grok
 =========
 
+|build-status| |coverage|
+
+.. |build-status| image:: http://img.shields.io/travis/yalp-log/yalp-grok/master.svg?style=flat
+    :alt: Build Status
+    :scale: 100%
+    :target: https://travis-ci.org/yalp-log/yalp-grok
+
+.. |coverage| image:: http://img.shields.io/coveralls/yalp-log/yalp-grok.svg?style=flat
+    :alt: Coverage Status
+    :scale: 100%
+    :target: https://coveralls.io/r/yalp-log/yalp-grok?branch=master
+
 Forked from https://github.com/garyelephant/pygrok as it seems to be dead. If
 pygrok becomes active again this fork may be closed.
 
