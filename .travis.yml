@@ -10,3 +10,12 @@ install:
 script:
   - tox -e $TOX_ENV
 after_success: coveralls
+deploy:
+  provider: pypi
+  user: tim.messier
+  password:
+    secure: nX77APncl4N0KtJnEyOi/Acs5lB6BzedXu+kI7Z+15tNDAiScG+5HW5yi85ANw2Jv+2gzSMPHYZdnn9nuSqNxIwWFKMoQA4wEtvorGdtVlTa5VoHTi85bkt3I+OQq2pOqug8WbndUMjAQVWr8RZhvpdkG7dYuJ5yqbXl+i2OJVwXoAcw52vDG8SwGeIwHogDOXgHvirJsNAyriU8JQ1MbyQ6sQhyuYwIaaRxOQPBtlOpPhUETewR3tJTcXfsJrfcuw8Pjr4udpSaR0VgJlmBEOC+hZ+nS9tEhyXZxKQpCguJsl3loRJXqFzmPby0AMnE6nvJJV4FqtA9hqEx7Z/37vmDoAvLeTZ5N8s7eJMnj0jEhPs0s7oqSRUdmAgwv3xwJo0JmKFdLfw4Z67lUa7JGMdNymbYIFymLpx3+wD5K+FCwln/WjRgDf2yXNejBj1DScnP89dCdmS1VfJQ2CPQXqaXx0PygXGfZspjDUcg8UAKXL+nKhJheGH8U+WAyrUkXlSRQ+cyp0A76Tq0U4eW+AQjmWGu9savBGQSwyADarJV2QbGdP+Z+2Le1vn2+mlvD0aKmo5/yFbA4n3jXSS1ihhpuPOlH1wb5n5s9jMcRTtHlgJUzotGX0di+yh0CcHCI0KEwQArJpJLgYF+4ZeCs6vR+XsRMEDoZf3NOJF8gKc=
+  distributions: sdist bdist_wheel
+  on:
+    tags: true
+    branch: master
