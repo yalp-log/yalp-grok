@@ -1,7 +1,7 @@
 YALP Grok
 =========
 
-|build-status| |coverage|
+|build-status| |coverage| |deps| |pypi|
 
 .. |build-status| image:: http://img.shields.io/travis/yalp-log/yalp-grok/master.svg?style=flat
     :alt: Build Status
@@ -12,6 +12,17 @@ YALP Grok
     :alt: Coverage Status
     :scale: 100%
     :target: https://coveralls.io/r/yalp-log/yalp-grok?branch=master
+
+.. |deps| image:: http://img.shields.io/gemnasium/yalp-log/yalp-grok.svg?style=flat
+    :alt: Dependency Status
+    :scale: 100%
+    :target: https://gemnasium.com/yalp-log/yalp-grok
+
+.. |pypi| image:: http://img.shields.io/pypi/v/yalp_grok.svg?style=flat
+    :alt: PyPi version
+    :scale: 100%
+    :target: https://pypi.python.org/pypi/yalp_grok
+
 
 Forked from https://github.com/garyelephant/pygrok as it seems to be dead. If
 pygrok becomes active again this fork may be closed.
