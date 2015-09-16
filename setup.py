@@ -46,7 +46,17 @@ SETUP_KWARGS = {
     'packages': find_packages(exclude=[
         '*.tests*', '*.tests.*', 'tests.*', 'tests',
     ]),
-    'package_data': {},
+    # 'package_data': {
+    #     'yalp_gork': [
+    #         'LICENSE',
+    #         'README.rst',
+    #         'tests/*',
+    #         'yalp_grok/patterns/*',
+    #         'requirements.txt',
+    #         'dev_requirements.txt',
+    #     ],
+    # },
+    'include_package_data': True,
     'data_files': [],
     'install_requires': REQUIREMENTS,
 }
