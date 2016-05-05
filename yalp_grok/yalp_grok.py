@@ -6,9 +6,7 @@ yalp_grok.yalp_grok
 import os
 import sys
 import copy
-
 from collections import namedtuple
-
 import regex as re
 
 DEFAULT_PATTERNS_DIRS = [os.path.join(os.path.dirname(os.path.abspath(__file__)), 'patterns')]
