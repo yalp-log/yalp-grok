@@ -154,7 +154,6 @@ def _load_patterns_from_file(pat_file):
     return patterns
 
 
-# Substitute keys with regex
 def _sub_pattern_name(py_regex_pattern, all_patterns, type_map, auto_map):
     '''
     Expand grok pattern with regex substitution
@@ -171,10 +170,11 @@ def _sub_pattern_name(py_regex_pattern, all_patterns, type_map, auto_map):
     return py_regex_pattern, type_map
 
 
-# Expand keys with regex using generic string format
 def _format_pattern_name(match, pattern_format, all_patterns):
     '''
     Generate a new pattern based on capture results
+
+    Expand keys with regex using generic string format
     '''
     return pattern_format['format'].format(
         key=_get_group_key(match),
@@ -182,11 +182,12 @@ def _format_pattern_name(match, pattern_format, all_patterns):
     )
 
 
-# Return None if no more than 1 index in group
-# Probably a better way to do this...
 def _get_group_key(match):
     '''
     Return None on IndexError
+
+    Return None if no more than 1 index in group
+    Probably a better way to do this...
     '''
     try:
         return match.group(2)
@@ -194,14 +195,15 @@ def _get_group_key(match):
         return None
 
 
-# Follow conditions in correct order to assign data type for a named Grok key.
-# For now this will only affect Grok keys listed in INT and FLOAT variables
-# in order to assign int or float primitive types to
-# attribute names using matching Grok keys.
-# A defined type using ES Grok type semantic takes precedence.
 def _map_types(py_regex_pattern, auto_map, type_map=None):
     '''
     Generate type map against regex pattern
+
+    Follow conditions in correct order to assign data type for a named
+    Grok key. For now this will only affect Grok keys listed in INT and
+    FLOAT variables in order to assign int or float primitive types to
+    attribute names using matching Grok keys. A defined type using ES
+    Grok type semantic takes precedence.
     '''
     if not type_map:
         type_map = {}
@@ -229,10 +231,12 @@ def _type_match(grok_key):
     return None
 
 
-# Cast values of any attribute names inside map to their identified type.
 def _apply_map(match_dict, type_map):
     '''
     Apply generated type map to regex group dict
+
+    Cast values of any attribute names inside map to their identified
+    type.
     '''
     if type_map:
         for name, detected_type in type_map.items():
@@ -243,7 +247,6 @@ def _apply_map(match_dict, type_map):
     return match_dict
 
 
-# The power of Christ compels you!!!
 def _convert(value, detected_type):
     '''
     Attempts conversion if value is not None.
