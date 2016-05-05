@@ -176,7 +176,7 @@ def _sub_pattern_name(py_regex_pattern, all_patterns, type_map, auto_map):
 # Expand keys with regex using generic string format
 def _format_pattern_name(match, pattern_format, all_patterns):
     '''
-    Generate a new pattern based on capture results 
+    Generate a new pattern based on capture results
     '''
     return pattern_format['format'].format(
         key=_get_group_key(match),
@@ -198,7 +198,7 @@ def _get_group_key(match):
 
 # Follow conditions in correct order to assign data type for a named Grok key.
 # For now this will only affect Grok keys listed in INT and FLOAT variables
-# in order to assign int or float primitive types to 
+# in order to assign int or float primitive types to
 # attribute names using matching Grok keys.
 # A defined type using ES Grok type semantic takes precedence.
 def _map_types(py_regex_pattern, auto_map, type_map=None):
