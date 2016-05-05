@@ -9,6 +9,9 @@ import copy
 from collections import namedtuple
 import regex as re
 
+
+Pattern = namedtuple('Pattern', 'name regex_str')
+
 DEFAULT_PATTERNS_DIRS = [
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'patterns')
 ]
