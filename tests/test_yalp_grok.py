@@ -183,3 +183,140 @@ class TestCustomPatterns(unittest.TestCase):
         self.assertEqual(match['name'], 'gary')
         self.assertEqual(match['age'], '25')
         self.assertEqual(match['motto'], '"never quit"')
+
+
+class TestAutoMap(unittest.TestCase):
+    '''
+    Test type casting with auto generated type map
+    '''
+    def test_nginx_log_match(self):
+        text = (
+            'edge.v.iask.com.edge.sinastorage.com 14.18.243.65 6.032s - [21/Jul/2014:16:00:02 +0800]'
+            ' "GET /edge.v.iask.com/125880034.hlv HTTP/1.0" 200 70528990 "-"'
+            ' "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36"'
+        )
+        pat = (
+            '%{HOST:host} %{IP:client_ip} %{NUMBER:delay}s - \[%{HTTPDATE:time_stamp}\]'
+            ' "%{WORD:verb} %{URIPATHPARAM:uri_path} HTTP/%{NUMBER:http_ver}" %{INT:http_status} %{INT:bytes} %{QS:referrer}'
+            ' %{QS:agent}'
+        )
+        match = grok_match(text, pat, auto_map=True)
+        self.assertIsNotNone(match)
+        self.assertEqual(match['host'], 'edge.v.iask.com.edge.sinastorage.com')
+        self.assertEqual(match['client_ip'], '14.18.243.65')
+        self.assertEqual(match['delay'], 6.032)
+        self.assertEqual(match['time_stamp'], '21/Jul/2014:16:00:02 +0800')
+        self.assertEqual(match['verb'], 'GET')
+        self.assertEqual(match['uri_path'], '/edge.v.iask.com/125880034.hlv')
+        self.assertEqual(match['http_ver'], 1.0)
+        self.assertEqual(match['http_status'], 200)
+        self.assertEqual(match['bytes'], 70528990)
+        self.assertEqual(match['referrer'], '"-"')
+        self.assertEqual(match['agent'],
+                         '"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36"')
+
+    def test_compound_matches(self):
+        text = (
+            '127.0.0.1 - - [15/Sep/2015:13:41:35 -0400] "GET /index.html '
+            'HTTP/1.1" 502 352 "-" '
+            '"Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0"'
+        )
+        pat = '%{COMBINEDAPACHELOG}'
+        match = grok_match(text, pat, auto_map=True)
+        self.assertIsNotNone(match)
+        self.assertEqual(match['clientip'], '127.0.0.1')
+        self.assertEqual(match['ident'], '-')
+        self.assertEqual(match['auth'], '-')
+        self.assertEqual(match['timestamp'], '15/Sep/2015:13:41:35 -0400')
+        self.assertEqual(match['verb'], 'GET')
+        self.assertEqual(match['request'], '/index.html')
+        self.assertEqual(match['httpversion'], 1.1)
+        self.assertEqual(match['response'], 502)
+        self.assertEqual(match['bytes'], 352)
+        self.assertEqual(match['referrer'], '"-"')
+        self.assertEqual(match['agent'], '"Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0"')
+
+    def test_non_neg_int_match(self):
+        text = '3245521'
+        pat = '%{NONNEGINT:test_int}'
+        match = grok_match(text, pat, auto_map=True)
+        self.assertIsNotNone(match)
+        self.assertEqual(match['test_int'], 3245521)
+
+    def test_syslog_match(self):
+        text = (
+            '2016-03-25T05:55:32 <3245521.83838> host kernel: [1858.738417]  [<ffffffff811e6c31>] SyS_ioctl+0x81/0xa0'
+        )
+        pat = '%{SYSLOGLINE}'
+        match = grok_match(text, pat, auto_map=True)
+        self.assertEqual(match['facility'], 3245521)
+        self.assertEqual(match['pid'], None)
+        self.assertEqual(match['priority'], 83838)
+
+
+class TestDefinedType(unittest.TestCase):
+    def test_syslog_match(self):
+        pats_dir = os.path.join(os.path.dirname(__file__), 'test_patterns')
+        text = (
+            '2016-03-25T05:55:32 <3245521.83838> host kernel: [1858.738417]  [<ffffffff811e6c31>] SyS_ioctl+0x81/0xa0'
+        )
+        pat = '%{TYPEDSYSLOGLINE}'
+        match = grok_match(text, pat, custom_patterns_dir=pats_dir)
+        self.assertEqual(match['facility'], 3245521)
+        self.assertEqual(match['pid'], None)
+        self.assertEqual(match['priority'], 83838)
+
+    def test_non_neg_int_match(self):
+        text = '3245521'
+        pat = '%{NONNEGINT:test_int:int}'
+        match = grok_match(text, pat)
+        self.assertIsNotNone(match)
+        self.assertEqual(match['test_int'], 3245521)
+
+    def test_compound_matches(self):
+        pats_dir = os.path.join(os.path.dirname(__file__), 'test_patterns')
+        text = (
+            '127.0.0.1 - - [15/Sep/2015:13:41:35 -0400] "GET /index.html '
+            'HTTP/1.1" 502 352 "-" '
+            '"Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0"'
+        )
+        pat = '%{TYPEDCOMBINEDAPACHELOG}'
+        match = grok_match(text, pat, custom_patterns_dir=pats_dir)
+        self.assertIsNotNone(match)
+        self.assertEqual(match['clientip'], '127.0.0.1')
+        self.assertEqual(match['ident'], '-')
+        self.assertEqual(match['auth'], '-')
+        self.assertEqual(match['timestamp'], '15/Sep/2015:13:41:35 -0400')
+        self.assertEqual(match['verb'], 'GET')
+        self.assertEqual(match['request'], '/index.html')
+        self.assertEqual(match['httpversion'], 1.1)
+        self.assertEqual(match['response'], 502)
+        self.assertEqual(match['bytes'], 352)
+        self.assertEqual(match['referrer'], '"-"')
+        self.assertEqual(match['agent'], '"Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0"')
+
+    def test_nginx_log_match(self):
+        text = (
+            'edge.v.iask.com.edge.sinastorage.com 14.18.243.65 6.032s - [21/Jul/2014:16:00:02 +0800]'
+            ' "GET /edge.v.iask.com/125880034.hlv HTTP/1.0" 200 70528990 "-"'
+            ' "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36"'
+        )
+        pat = (
+            '%{HOST:host} %{IP:client_ip} %{NUMBER:delay:float}s - \[%{HTTPDATE:time_stamp}\]'
+            ' "%{WORD:verb} %{URIPATHPARAM:uri_path} HTTP/%{NUMBER:http_ver:float}" %{INT:http_status:int} %{INT:bytes:int} %{QS:referrer}'
+            ' %{QS:agent}'
+        )
+        match = grok_match(text, pat)
+        self.assertIsNotNone(match)
+        self.assertEqual(match['host'], 'edge.v.iask.com.edge.sinastorage.com')
+        self.assertEqual(match['client_ip'], '14.18.243.65')
+        self.assertEqual(match['delay'], 6.032)
+        self.assertEqual(match['time_stamp'], '21/Jul/2014:16:00:02 +0800')
+        self.assertEqual(match['verb'], 'GET')
+        self.assertEqual(match['uri_path'], '/edge.v.iask.com/125880034.hlv')
+        self.assertEqual(match['http_ver'], 1.0)
+        self.assertEqual(match['http_status'], 200)
+        self.assertEqual(match['bytes'], 70528990)
+        self.assertEqual(match['referrer'], '"-"')
+        self.assertEqual(match['agent'],
+                         '"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36"')
