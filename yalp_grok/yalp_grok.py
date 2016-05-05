@@ -9,7 +9,9 @@ import copy
 from collections import namedtuple
 import regex as re
 
-DEFAULT_PATTERNS_DIRS = [os.path.join(os.path.dirname(os.path.abspath(__file__)), 'patterns')]
+DEFAULT_PATTERNS_DIRS = [
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'patterns')
+]
 
 # Attributes used to determine type on groupdict post processing
 # Just covering floats and ints
@@ -18,12 +20,16 @@ FLOAT = ('BASE10NUM')
 TYPES = {'int': INT, 'float': FLOAT}
 
 # GROK pattern/format data abstracted from logic
-NAMED_PATTERN = {'pattern': r'%{(\w+):(\w+)(:\w+)?}', 'format': '(?P<{key}>{regex})'}
+NAMED_PATTERN = {
+    'pattern': r'%{(\w+):(\w+)(:\w+)?}',
+    'format': '(?P<{key}>{regex})'
+}
+
 UNNAMED_PATTERN = {'pattern': r'%{(\w+)}', 'format': '({regex})'}
 PATTERN_FORMATS = (UNNAMED_PATTERN, NAMED_PATTERN)
 
-# Magic pattern for capturing named grok keys in various states of expansion to
-# identify final grok key of named attributes
+# Magic pattern for capturing named grok keys in various states
+# of expansion to identify final grok key of named attributes
 NAMED_KEY_PATTERN = re.compile(
     r'(?:%{(?P<grok>\w+):(?P<key>\w+)(?::(?P<type>\w+))?}'
     r'|\(\?P<(?P<key>\w+)>(?:%{(?P<grok>\w+)}'
@@ -33,7 +39,8 @@ NAMED_KEY_PATTERN = re.compile(
 Pattern = namedtuple('Pattern', 'name regex_str')
 
 
-def grok_match(text, pattern, custom_patterns=None, custom_patterns_dir=None, auto_map=False):
+def grok_match(text, pattern, custom_patterns=None,
+               custom_patterns_dir=None, auto_map=False):
     '''
     Search for pattern in text.
 
@@ -58,7 +65,8 @@ def grok_match(text, pattern, custom_patterns=None, custom_patterns_dir=None, au
         pattern, custom_patterns, custom_patterns_dir, auto_map=auto_map))
 
 
-def compile_pattern(pattern, custom_patterns=None, custom_patterns_dir=None, auto_map=False):
+def compile_pattern(pattern, custom_patterns=None,
+                    custom_patterns_dir=None, auto_map=False):
     '''
     Compile pattern before use for better performance when matching.
 
@@ -147,10 +155,14 @@ def _load_patterns_from_file(pat_file):
 
 # Substitute keys with regex
 def _sub_pattern_name(py_regex_pattern, all_patterns, type_map, auto_map):
+    '''
+    Expand grok pattern with regex substitution
+    '''
     for pattern_format in PATTERN_FORMATS:
         pattern = pattern_format['pattern']
         py_regex_pattern = re.sub(
-            pattern, lambda match, pat_format=pattern_format: _format_pattern_name(
+            pattern, lambda match, pat_format=pattern_format:
+            _format_pattern_name(
                 match, pat_format, all_patterns),
             py_regex_pattern)
         type_map.update(_map_types(py_regex_pattern, auto_map, type_map))
@@ -160,6 +172,9 @@ def _sub_pattern_name(py_regex_pattern, all_patterns, type_map, auto_map):
 
 # Expand keys with regex using generic string format
 def _format_pattern_name(match, pattern_format, all_patterns):
+    '''
+    Generate a new pattern based on capture results 
+    '''
     return pattern_format['format'].format(
         key=_get_group_key(match),
         regex=all_patterns[match.group(1)].regex_str
@@ -169,6 +184,9 @@ def _format_pattern_name(match, pattern_format, all_patterns):
 # Return None if no more than 1 index in group
 # Probably a better way to do this...
 def _get_group_key(match):
+    '''
+    Return None on IndexError
+    '''
     try:
         return match.group(2)
     except IndexError:
@@ -177,9 +195,13 @@ def _get_group_key(match):
 
 # Follow conditions in correct order to assign data type for a named Grok key.
 # For now this will only affect Grok keys listed in INT and FLOAT variables
-# in order to assign int or float primitive types to attribute names using
-# matching Grok keys. A defined type using ES Grok type semantic takes precedence.
+# in order to assign int or float primitive types to 
+# attribute names using matching Grok keys.
+# A defined type using ES Grok type semantic takes precedence.
 def _map_types(py_regex_pattern, auto_map, type_map=None):
+    '''
+    Generate type map against regex pattern
+    '''
     if not type_map:
         type_map = {}
 
@@ -197,6 +219,9 @@ def _map_types(py_regex_pattern, auto_map, type_map=None):
 
 
 def _type_match(grok_key):
+    '''
+    Attempt to match grok key with types associated with it
+    '''
     for type_item, grok_keys in TYPES.items():
         if grok_key in grok_keys:
             return type_item
@@ -205,6 +230,9 @@ def _type_match(grok_key):
 
 # Cast values of any attribute names inside map to their identified type.
 def _apply_map(match_dict, type_map):
+    '''
+    Apply generated type map to regex group dict
+    '''
     if type_map:
         for name, detected_type in type_map.items():
             try:
@@ -216,6 +244,9 @@ def _apply_map(match_dict, type_map):
 
 # The power of Christ compels you!!!
 def _convert(value, detected_type):
+    '''
+    Attempts conversion if value is not None.
+    '''
     if value:
         if detected_type == 'int':
             return int(value)
