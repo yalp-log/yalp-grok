@@ -5,8 +5,8 @@ yalp_grok.yalp_grok
 '''
 import os
 import copy
-import regex as re
 from collections import namedtuple
+import regex as re
 
 
 Pattern = namedtuple('Pattern', 'name regex_str')
