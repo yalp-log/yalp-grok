@@ -243,7 +243,8 @@ def _apply_map(match_dict, type_map):
             try:
                 match_dict[name] = _convert(match_dict[name], detected_type)
             except ValueError:
-                sys.exc_clear()
+                if sys.version_info[0] < 3:
+                    sys.exc_clear()
     return match_dict
 
 
