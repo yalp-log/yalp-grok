@@ -62,4 +62,4 @@ and then reused for searching.
     >>> with open('/var/log/apache/access.log', 'r') as log_file
     ...     matches = [pygrok.grok_search(line, compiled_pattern) for line in log_file]
 
-.. _Grok: https://github.com/jordansissel/grok
+.. _Grok: https://github.com/jordansissel/grok 

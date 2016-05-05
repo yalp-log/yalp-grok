@@ -1,1 +1,8 @@
 ID %{WORD}-%{INT}
+
+TYPEDSYSLOGFACILITY <%{NONNEGINT:facility:int}.%{NONNEGINT:priority:int}>
+TYPEDSYSLOGBASE2 (?:%{SYSLOGTIMESTAMP:timestamp}|%{TIMESTAMP_ISO8601:timestamp8601}) (?:%{TYPEDSYSLOGFACILITY} )?%{SYSLOGHOST:logsource} %{SYSLOGPROG}:
+TYPEDSYSLOGLINE %{TYPEDSYSLOGBASE2} %{GREEDYDATA:message}
+
+TYPEDCOMMONAPACHELOG %{IPORHOST:clientip} %{USER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] "(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion:float})?|%{DATA:rawrequest})" %{NUMBER:response:int} (?:%{NUMBER:bytes:int}|-)
+TYPEDCOMBINEDAPACHELOG %{TYPEDCOMMONAPACHELOG} %{QS:referrer} %{QS:agent}
