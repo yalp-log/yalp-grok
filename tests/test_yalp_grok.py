@@ -273,6 +273,13 @@ class TestDefinedType(unittest.TestCase):
         self.assertIsNotNone(match)
         self.assertEqual(match['test_int'], 3245521)
 
+    def test_conversion_failure(self):
+        text = 'not_a_int'
+        pat = '%{WORD:test_str:int}'
+        match = grok_match(text, pat)
+        self.assertIsNotNone(match)
+        self.assertEqual(match['test_str'], 'not_a_int')
+
     def test_compound_matches(self):
         pats_dir = os.path.join(os.path.dirname(__file__), 'test_patterns')
         text = (
