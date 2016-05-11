@@ -1,5 +1,5 @@
 flake8
 pylint
 nosexcover
-nosetimer
+nose-timer
 mock
