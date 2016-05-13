@@ -19,6 +19,10 @@ DEFAULT_PATTERNS_DIRS = [
 INT = ('INT', 'POSINT', 'NONNEGINT')
 FLOAT = ('BASE10NUM')
 TYPES = {'int': INT, 'float': FLOAT}
+CONVERSIONS = {
+    'int': int,
+    'float': float,
+}
 
 # GROK pattern/format data abstracted from logic
 NAMED_PATTERN = {
@@ -242,9 +246,8 @@ def _apply_map(match_dict, type_map):
         for name, detected_type in type_map.items():
             try:
                 match_dict[name] = _convert(match_dict[name], detected_type)
-            except ValueError:
-                if sys.version_info[0] < 3:
-                    sys.exc_clear()
+            except (ValueError, TypeError):
+                pass
     return match_dict
 
 
@@ -252,12 +255,7 @@ def _convert(value, detected_type):
     '''
     Attempts conversion if value is not None.
     '''
-    if value:
-        if detected_type == 'int':
-            return int(value)
-        if detected_type == 'float':
-            return float(value)
-    return value
+    return CONVERSIONS[detected_type](value)
 
 
 PREDEFINED_PATTERNS = _reload_patterns(DEFAULT_PATTERNS_DIRS)

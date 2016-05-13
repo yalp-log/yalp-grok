@@ -280,6 +280,20 @@ class TestDefinedType(unittest.TestCase):
         self.assertIsNotNone(match)
         self.assertEqual(match['test_str'], 'not_a_int')
 
+    def test_conversion_failure_float(self):
+        text = 'not_a_float'
+        pat = '%{WORD:test_str:float}'
+        match = grok_match(text, pat)
+        self.assertIsNotNone(match)
+        self.assertEqual(match['test_str'], 'not_a_float')
+
+    def test_unsupported_type(self):
+        text = 'unknown_type'
+        pat = '%{WORD:test_str:decimal}'
+        match = grok_match(text, pat)
+        self.assertIsNotNone(match)
+        self.assertEqual(match['test_str'], 'unknown_type')
+
     def test_compound_matches(self):
         pats_dir = os.path.join(os.path.dirname(__file__), 'test_patterns')
         text = (
