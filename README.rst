@@ -9,9 +9,14 @@ YALP Grok
     :target: https://travis-ci.org/yalp-log/yalp-grok
 
 .. |coverage| image:: http://img.shields.io/coveralls/yalp-log/yalp-grok.svg?style=flat
-    :alt: Coverage Status
+    :alt: Coveralls Status
     :scale: 100%
     :target: https://coveralls.io/r/yalp-log/yalp-grok?branch=master
+
+.. |codecov| image:: https://img.shields.io/codecov/c/github/yalp-log/yalp-grok/master.svg
+    :alt: Codecov Status
+    :scale: 100%
+    :target: https://codecov.io/gh/yalp-log/yalp-grok
 
 .. |deps| image:: http://img.shields.io/gemnasium/yalp-log/yalp-grok.svg?style=flat
     :alt: Dependency Status
