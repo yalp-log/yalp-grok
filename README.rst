@@ -1,14 +1,14 @@
 YALP Grok
 =========
 
-|build-status| |coverage| |deps| |pypi|
+|build-status| |coverage| |codecov| |deps| |pypi|
 
 .. |build-status| image:: http://img.shields.io/travis/yalp-log/yalp-grok/master.svg?style=flat
     :alt: Build Status
     :scale: 100%
     :target: https://travis-ci.org/yalp-log/yalp-grok
 
-.. |coverage| image:: http://img.shields.io/coveralls/yalp-log/yalp-grok.svg?style=flat
+.. |coverage| image:: http://img.shields.io/coveralls/yalp-log/yalp-grok.svg?style=flat?style=flat
     :alt: Coveralls Status
     :scale: 100%
     :target: https://coveralls.io/r/yalp-log/yalp-grok?branch=master
