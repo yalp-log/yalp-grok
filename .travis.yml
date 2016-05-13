@@ -9,7 +9,9 @@ install:
   - pip install tox coveralls
 script:
   - tox -e $TOX_ENV
-after_success: coveralls
+after_success:
+  - coveralls
+  - bash <(curl -s https://codecov.io/bash)
 deploy:
   provider: pypi
   user: tim.messier
